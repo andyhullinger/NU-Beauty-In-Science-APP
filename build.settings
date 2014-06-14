@@ -1,0 +1,59 @@
+settings =
+{    
+    plugins =
+    {
+        -- key is the name passed to Lua's 'require()'
+        ["CoronaProvider.native.popup.social"] =
+        {
+            -- required
+            publisherId = "com.coronalabs",
+        },
+    },
+
+    android =
+    {
+            versionCode = "1"
+    },
+    
+    androidPermissions =
+    {
+       "android.permission.VIBRATE",
+       "android.permission.INTERNET",
+       "android.permission.WRITE_EXTERNAL_STORAGE",
+    },
+    
+    iphone =
+    {
+        components = {},
+        plist =
+        {
+            UIPrerenderedIcon = true,
+            UIStatusBarHidden = true,
+            UILaunchImageFile = "Default",
+            CFBundleIconFile = "Icon.png",
+            CFBundleIconFiles = {
+                "Icon.png",
+                "Icon@2x.png",
+                "Icon-Small-40.png",
+                "Icon-Small-40@2x.png",
+                "Icon-60.png",
+                "Icon-60@2x.png",
+                "Icon-72.png",
+                "Icon-72@2x.png",
+                "Icon-76.png",
+                "Icon-76@2x.png",
+                "Icon-Small-50.png",
+                "Icon-Small-50@2x.png",
+                "Icon-Small.png",
+                "Icon-Small@2x.png",            
+            },
+    },
+    
+    orientation =
+        {
+                default = "portrait",
+                supported = { "portraitUpsideDown", "portrait" }
+        },
+    },
+    
+}
