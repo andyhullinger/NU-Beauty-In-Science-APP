@@ -25,7 +25,6 @@ local appData = require ("data2013")
 local tableView, scrollview
 local buildInfoPanel, loadSelectedPhoto
 local thePhoto
-local pictureIsNowFullScreen = false
 
   
 
@@ -38,26 +37,6 @@ if (display.pixelHeight == 1136) then
     iPhone5 = true
 end
 
-if (display.pixelHeight > 1137) then
-    deviceHeight = 570
-    Android = true
-end
-
-if (display.pixelHeight == 800) then
-    deviceHeight = 534
-    Android = true
-end
-
-if (display.pixelHeight == 960) then
-    deviceHeight = 570
-    Android = true
-end
-
-if (display.pixelHeight == 854) then
-    deviceHeight = 570
-    Android = true
-end
-
 screen = 
 {
     left = display.screenOriginX,
@@ -68,7 +47,7 @@ screen =
 
 ------- Shared Variables for Program FLow
 
-local selectedYear, selectedPhoto, currentOrientation
+local selectedYear, selectedPhoto
 
 
 ------- CREATE MAIN VIEWS (positon and add "touch traps" to prevent errant propogation)
@@ -76,7 +55,6 @@ local selectedYear, selectedPhoto, currentOrientation
 local picture = display.newGroup()
 local toolbar = display.newGroup()
 local about = display.newGroup()
-
 
 about = display.newGroup()
 about.showY = 0
@@ -153,60 +131,39 @@ tool3.name = "info"
 toolbar.y = screen.bottom
 
 -----add sidewall swipe buttons
-local swipeMenuBtn = display.newRect( 0, screen.top, 30, deviceHeight )
+local swipeMenuBtn = display.newRect( 0, screen.top, 20, deviceHeight )
 swipeMenuBtn.name = "menu"
-swipeMenuBtn.isVisible = false
+swipeMenuBtn.isVisible = true
 swipeMenuBtn.isHitTestable = true
 
-local swipeInfoBtn = display.newRect( screen.right, screen.top, 30, deviceHeight )
-swipeInfoBtn.anchorX = 1
+local swipeInfoBtn = display.newRect( screen.right-20, screen.top, 20, deviceHeight )
 swipeInfoBtn.name = "info"
-swipeInfoBtn.isVisible = false
+swipeInfoBtn.isVisible = true
 swipeInfoBtn.isHitTestable = true
-
----colortest for swipebuttons
--- swipeMenuBtn:setFillColor( 255 )
--- swipeInfoBtn:setFillColor( 255 )
 
 
 ------- START UTILITY FUNCTIONS
-local function focusPicture()
-    picture:toFront()
-    toolbar:toFront()
-end
-
-local function defocusPicture()
-    toolbar:toBack()
-    picture:toBack()
-end
-
-
-local function manageInfoPanel(buttonName)
+local function manageAboutPage(buttonName)
     if (menu.x == menu.hideX or buttonName == "info") then
         transition.moveTo( about, { x=about.showX, time=300, transition=easing.inQuad  } )
     end
     if (menu.x == menu.showX or buttonName == "info") then
         transition.moveTo( about, { x=about.hideX, time=300, transition=easing.inQuad  } )
     end
+        print(menu.x, menu.showX, menu.hideX)
+
 end
 
 
 
 local function onObjectHide( self, event )
-    local function pictureIsFullscreen()
-       if (menu.x == menu.hideX and info.x == info.hideX) then
-        pictureIsNowFullScreen = true
-        print("fullscreen")
-    end
-    end
-    transition.moveTo( self, { x=self.hideX, time=300, transition=easing.inQuad, onComplete=pictureIsFullscreen } )
+        transition.moveTo( self, { x=self.hideX, time=300, transition=easing.inQuad  } )
     return true
 end
 
 local function onObjectShow( self, event )
-    pictureIsNowFullScreen = false
         local clickedButton = self.name
-        manageInfoPanel(clickedButton)
+        manageAboutPage(clickedButton)
         transition.moveTo( self.link, { x=self.link.showX, time=300, transition=easing.inQuad  } )
         transition.to( toolbar, { y=screen.bottom, alpha=0, time=300, transition=easing.inQuad  } )
 
@@ -219,26 +176,35 @@ local function onShowTools( self, event )
     return true
 end
 
-local firstTouch = 0
 local function onSwipeScreen( self, event )
-  
-        if (self.name == "menu") then
-                -- swipeMenuBtn.width = 20
-                -- swipeInfoBtn.width = 60
+    local swipeThreshold = 100
+    if ( event.phase == "ended") then
+        print (event.x .. startX)
+    end
 
-                transition.moveTo( info, { x=info.hideX, time=300, transition=easing.inQuad } )
-                transition.moveTo( menu, { x=menu.showX, time=300, transition=easing.inQuad } )
-                transition.moveTo( about, { x=about.showX, time=300, transition=easing.inQuad } )
-                transition.to( toolbar, { y=screen.bottom, alpha=0, time=100} )
-        end
-        if (self.name == "info") then
-                -- swipeInfoBtn.width = 20
-                -- swipeMenuBtn.width = 60
+    local startX = event.x
+    print (self.name)
+    
 
-                transition.moveTo( menu, { x=menu.hideX, time=300, transition=easing.inQuad } )
-                transition.moveTo( about, { x=about.hideX, time=300, transition=easing.inQuad } )
-                transition.moveTo( info, { x=info.showX, time=300, transition=easing.inQuad } )
-        end
+    if ( event.phase == "ended") then
+        print (event.x .. startX)
+    end
+
+
+
+-- if (self.target.name == "menu") then
+--         transition.moveTo( info, { x=info.hideX, time=300, transition=easing.inQuad } )
+--         transition.moveTo( menu, { x=menu.showX, time=500, transition=easing.inQuad } )
+--         transition.moveTo( about, { x=about.showX, time=500, transition=easing.inQuad } )
+--         transition.to( toolbar, { y=screen.bottom, alpha=0, time=100} )
+-- end
+
+-- if (self.target.name == "info") then
+--         transition.moveTo( menu, { x=menu.hideX, time=300, transition=easing.inQuad } )
+--         transition.moveTo( about, { x=about.hideX, time=300, transition=easing.inQuad } )
+--         transition.moveTo( info, { x=info.showX, time=500, transition=easing.inQuad } )
+-- end
+
     return true
 end
 
@@ -262,7 +228,7 @@ local function buildMenu( galleryData )
         local rowWidth = row.contentWidth
         -- Add icon
          local iconData = galleryData[row.index]
-         rowIcon = display.newImageRect( row, iconData.icon, iconData.w, iconData.h )
+         rowIcon = display.newImage( row, iconData.icon, iconData.w, iconData.h )
          rowIcon.anchorX = 0
          rowIcon.x = 20
          rowIcon.y = rowHeight*.05
@@ -307,7 +273,6 @@ local function buildMenu( galleryData )
         hideScrollBar = false,
         hideBackground = false,
         noLines = false,
-        rowTouchDelay = 50,
         backgroundColor = {.145, .145, .145, 1},
     }
 
@@ -529,11 +494,11 @@ local function calculateCenter( previousTouches, event )
     
 end
 
+
+
 -- create a table listener object for the bkgd image
 function picture:touch( event )
-
-        focusPicture()
-
+ 
         local phase = event.phase
         local eventTime = event.time
         local previousTouches = self.previousTouches
@@ -600,6 +565,7 @@ function picture:touch( event )
  
         elseif self.isFocus then
                 if "moved" == phase then
+                    print(picture.x)
                         if self.distance then
                                 local dx,dy
                                 local cx,cy
@@ -695,7 +661,6 @@ end
                         elseif self.numPreviousTouches == 0 then
                                 -- previousTouches is empty so no more fingers are touching the screen
                                 -- Allow touch events to be sent normally to the objects they "hit"
-                                defocusPicture()
                                 display.getCurrentStage():setFocus( nil )
                                 self.isFocus = false
                                 self.distance = nil
@@ -719,6 +684,7 @@ end
 ------- SCREENSHOT CODE
 local function takeScreenShot( self, event )
     local forSale = selectedPhoto.buy
+    print(forSale)
     --play shutter click and hide toolbar from screengrab
     local shutterSFX = audio.loadSound( "art_ui/click_sound.wav" )
     audio.play( shutterSFX )
@@ -771,9 +737,9 @@ local function takeScreenShot( self, event )
     toolbar.alpha=1
 
     if (forSale) then
-        local alert = native.showAlert(  "Image Saved", "The image was saved to your Camera Roll. Would you also like to share it on facebook", { "Cancel", "Share", "Buy A Print"}, alertComplete )
+        local alert = native.showAlert(  "huh", "The image was saved to your Camera Roll. Would you also like to share it on facebook", { "Cancel", "Share", "Buy A Print"}, alertComplete )
     else
-        local alert = native.showAlert( "Image Saved", "The image was saved to your Camera Roll. Would you also like to share it on facebook", { "Cancel", "Share"}, alertComplete )
+        local alert = native.showAlert( "Success!", "The image was saved to your Camera Roll. Would you also like to share it on facebook", { "Cancel", "Share"}, alertComplete )
     end
 end
 ---------
@@ -885,27 +851,32 @@ local sislogo = display.newImageRect( intro, "art_ui/sislogo.png", 320, 189)
 local tagline = display.newImageRect( intro, "art_ui/tagline.png", 320, 217)
 
 nulogo.y = 130
-sislogo.y = 400 
+sislogo.y = 300 
 sislogo.alpha, tagline.alpha = 0,0
 
 transition.to( purpleFill, { delay=200, time=500, alpha=.4} )
 transition.to( nulogo, { delay=500, time=1000, y=244, transition=easing.inBack } )
 transition.to( nulogo, { delay=1100, time=500, alpha=0 } )
-transition.to( sislogo, { delay=1500, time=700, alpha=1, y=(deviceHeight-250), transition=easing.outQuad } )
+transition.to( sislogo, { delay=1500, time=700, alpha=1, y=244, transition=easing.outQuad } )
 transition.to( tagline, { delay=1000, time=2000, alpha=1, transition=easing.outQuad } )
 
 
 
-    local function killIntro(  )
-        intro:removeSelf( )
-        intro:removeEventListener("touch", function() return true end)
-        intro:removeEventListener("tap", function() return true end)
-        nulogo,sislogo,tagline = nil
-        transition.moveTo( tool1.link, { x=tool1.link.showX, time=500, transition=easing.inOutQuad } )
-        transition.moveTo( about, { x=about.showX, time=500, transition=easing.inOutQuad } )
-    end
+local function killIntro(  )
+    intro:removeSelf( )
+    intro:removeEventListener("touch", function() return true end)
+    intro:removeEventListener("tap", function() return true end)
+    nulogo,sislogo,tagline = nil
+    -- push menu into view first time
+    --howMenu()
 
-transition.to( intro, { delay=4000, time=500, alpha=0, onComplete=killIntro} )
+    transition.moveTo( tool1.link, { x=tool1.link.showX, time=500, transition=easing.inOutQuad } )
+    transition.moveTo( about, { x=about.showX, time=500, transition=easing.inOutQuad } )
+
+
+end
+
+transition.to( intro, { delay=5000, time=500, alpha=0, onComplete=killIntro} )
 
 end
 
@@ -920,78 +891,10 @@ selectedPhoto = selectedYear[introPics[introSelect]]
 
 ---- App Kickoff
 
-
-
 menu.sel13.alpha=1
 buildMenu(selectedYear)
 buildInfoPanel(selectedPhoto)
 loadSelectedPhoto(selectedPhoto)
 about:toFront()
 anim()
-
-local function scaleToFit(imageH, imageW)
-    print(imageH,imageW)
-    local screenW, screenH = deviceHeight, display.contentWidth
-    local ratioScreen = screenW/screenH
-    local ratioImage = imageH/imageW
-        if ratioScreen > ratioImage then
-            STFw = imageW * screenH/imageH
-            STFh = screenH
-        else
-            STFw = screenW
-            STFh = imageH * screenW/imageW
-        end
-    return STFw,STFh
-end
-
-local touchBlock = display.newGroup()
-
-local function onOrientationChange(event)
-
-  if(pictureIsNowFullScreen) then
-    transition.to( toolbar, { y=screen.bottom, alpha=0, time=300, transition=easing.inQuad  } ) 
-    touchBlock.x=0
-    touchBlock.y=0
-
-    local function blockTouches(pictureRotation) -- build a preview overlay for full screenview
-        if touchBlock ~= nil then
-            local touchBkgd = display.newRect( 0, 0, display.contentWidth, deviceHeight )
-            local shrinkFactorW, shrinkFactorH = scaleToFit(selectedPhoto.imgH, selectedPhoto.imgW)
-            local touchPicture = display.newImageRect(selectedPhoto.image, shrinkFactorW, shrinkFactorH)
-            touchPicture.name = "pictureView"
-            touchPicture.anchorX=0.5
-            touchPicture.anchorY=0.5
-            touchPicture.x = touchBkgd.width*0.5
-            touchPicture.y = touchBkgd.height*0.5
-            touchBlock:insert( touchBkgd )
-            touchBlock:insert( touchPicture )
-            touchBlock:addEventListener("touch", function() return true end)
-            touchBlock:addEventListener("tap", function() return true end)
-        end
-        touchBlock[2].rotation = pictureRotation
-    end
-
-    local function allowTouches()
-        touchBlock:removeEventListener("touch", function() return true end)
-        touchBlock:removeEventListener("tap", function() return true end)
-        display.remove( touchBlock )
-        touchBlock = display.newGroup()
-    end
-
-    if (event.type == "portrait") then
-         allowTouches()
-    end
-     if (event.type == "landscapeLeft") then
-        blockTouches(-90)
-    end
-     if (event.type == "landscapeRight") then
-        blockTouches(90)
-    end
-     if (event.type == "portraitUpsideDown") then
-        allowTouches()
-    end
-
-  end
-end
-Runtime:addEventListener("orientation", onOrientationChange)
 
